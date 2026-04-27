@@ -26,20 +26,26 @@ def fetch_multiple_close(tickers, start, end):
 
 def compute_part1(data, window1=20, window2=50, rsi_window=14):
     data = data.copy()
+
     data['20MA'] = data['Close'].rolling(window=window1).mean()
     data['50MA'] = data['Close'].rolling(window=window2).mean()
     data['Return'] = data['Close'].pct_change()
     data['Vol_20d'] = data['Return'].rolling(window=20).std() * np.sqrt(252)
- close_prices = data['Close']
 
-# Ensure it's a 1D Series (fixes yfinance multi-dim issue)
-if isinstance(close_prices, pd.DataFrame):
-    close_prices = close_prices.squeeze()
+    # --- FIXED RSI SECTION ---
+    close_prices = data['Close']
 
-rsi = RSIIndicator(close=close_prices, window=rsi_window).rsi()
+    if isinstance(close_prices, pd.DataFrame):
+        close_prices = close_prices.iloc[:, 0]
+
+    close_prices = pd.Series(close_prices).dropna()
+
+    rsi = RSIIndicator(close=close_prices, window=rsi_window).rsi()
     data['RSI'] = rsi
-    # Trend label for the latest row
+    # -------------------------
+
     latest = data.iloc[-1]
+
     if pd.isna(latest['20MA']) or pd.isna(latest['50MA']):
         trend = 'Insufficient data'
     elif latest['Close'] > latest['20MA'] > latest['50MA']:
@@ -48,12 +54,14 @@ rsi = RSIIndicator(close=close_prices, window=rsi_window).rsi()
         trend = 'Strong Downtrend'
     else:
         trend = 'Mixed Trend'
+
     signal = 'Hold'
     if not (pd.isna(latest['RSI']) or pd.isna(latest['Vol_20d'])):
         if latest['RSI'] < 30:
             signal = 'Buy'
         elif latest['RSI'] > 70:
             signal = 'Sell'
+
     latest_summary = {
         'CurrentPrice': float(latest['Close']),
         '20MA': float(latest['20MA']),
@@ -63,6 +71,7 @@ rsi = RSIIndicator(close=close_prices, window=rsi_window).rsi()
         'Trend': trend,
         'Signal': signal
     }
+
     return data, latest_summary
 
 def compute_part2(stocks, weights, benchmark, start, end):
