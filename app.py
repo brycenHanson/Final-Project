@@ -40,13 +40,18 @@ def compute_part1(data, window1=20, window2=50, rsi_window=14):
     close_prices = pd.Series(close_prices).dropna()
     data['RSI'] = RSIIndicator(close=close_prices, window=rsi_window).rsi()
 
-    latest = data.iloc[-1]
+   latest = data.iloc[-1]
 
-    close_val = float(latest['Close'])
-    ma20 = float(latest['20MA']) if pd.notna(latest['20MA']) else np.nan
-    ma50 = float(latest['50MA']) if pd.notna(latest['50MA']) else np.nan
-    rsi_val = float(latest['RSI']) if pd.notna(latest['RSI']) else np.nan
-    vol_val = float(latest['Vol_20d']) if pd.notna(latest['Vol_20d']) else np.nan
+def safe_float(x):
+    if isinstance(x, pd.Series):
+        x = x.iloc[0]
+    return float(x) if pd.notna(x) else np.nan
+
+close_val = safe_float(latest['Close'])
+ma20 = safe_float(latest['20MA'])
+ma50 = safe_float(latest['50MA'])
+rsi_val = safe_float(latest['RSI'])
+vol_val = safe_float(latest['Vol_20d'])
 
     # Trend
     if np.isnan(ma20) or np.isnan(ma50):
