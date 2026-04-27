@@ -11,12 +11,19 @@ st.set_page_config(page_title="Stock Analytics & Portfolio Dashboard", layout="w
 st.title("Stock Analytics & Portfolio Dashboard (Streamlit)")
 st.write("Explore a single stock and a 5-stock portfolio with performance metrics.")
 
-@st.cache
+@st.cache_data
 def fetch_stock_data(ticker, start, end):
     data = yf.download(ticker, start=start, end=end, progress=False)
-    if 'Close' in data.columns:
-        data = data[['Close']].rename(columns={'Close': 'Close'})
-        data = data.dropna()
+
+    if data is None or data.empty:
+        return pd.DataFrame()
+
+    # FORCE FLAT STRUCTURE (critical for Streamlit stability)
+    data = data.reset_index()
+
+    # Keep only what we need
+    data = data[['Date', 'Close']].dropna()
+
     return data
 
 @st.cache
