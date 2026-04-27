@@ -44,7 +44,7 @@ def compute_part1(data, window1=20, window2=50, rsi_window=14):
     data['RSI'] = rsi
     # -------------------------
 
-    latest = data.iloc[-1]
+    latest = data.iloc[-1].squeeze()
 
     if pd.isna(latest['20MA']) or pd.isna(latest['50MA']):
         trend = 'Insufficient data'
