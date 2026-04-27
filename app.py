@@ -45,6 +45,11 @@ def compute_part1(data, window1=20, window2=50, rsi_window=14):
     # -------------------------
 
     latest = data.iloc[-1].squeeze()
+    close_val = float(latest['Close'])
+ma20 = float(latest['20MA']) if pd.notna(latest['20MA']) else np.nan
+ma50 = float(latest['50MA']) if pd.notna(latest['50MA']) else np.nan
+rsi_val = float(latest['RSI']) if pd.notna(latest['RSI']) else np.nan
+vol_val = float(latest['Vol_20d']) if pd.notna(latest['Vol_20d']) else np.nan
 
     if pd.isna(latest['20MA']) or pd.isna(latest['50MA']):
         trend = 'Insufficient data'
