@@ -32,47 +32,46 @@ def compute_part1(data, window1=20, window2=50, rsi_window=14):
     data['Return'] = data['Close'].pct_change()
     data['Vol_20d'] = data['Return'].rolling(window=20).std() * np.sqrt(252)
 
-    # --- FIXED RSI SECTION ---
+    # RSI
     close_prices = data['Close']
-
     if isinstance(close_prices, pd.DataFrame):
         close_prices = close_prices.iloc[:, 0]
 
     close_prices = pd.Series(close_prices).dropna()
+    data['RSI'] = RSIIndicator(close=close_prices, window=rsi_window).rsi()
 
-    rsi = RSIIndicator(close=close_prices, window=rsi_window).rsi()
-    data['RSI'] = rsi
-    # -------------------------
+    latest = data.iloc[-1]
 
-    latest = data.iloc[-1].squeeze()
     close_val = float(latest['Close'])
-ma20 = float(latest['20MA']) if pd.notna(latest['20MA']) else np.nan
-ma50 = float(latest['50MA']) if pd.notna(latest['50MA']) else np.nan
-rsi_val = float(latest['RSI']) if pd.notna(latest['RSI']) else np.nan
-vol_val = float(latest['Vol_20d']) if pd.notna(latest['Vol_20d']) else np.nan
+    ma20 = float(latest['20MA']) if pd.notna(latest['20MA']) else np.nan
+    ma50 = float(latest['50MA']) if pd.notna(latest['50MA']) else np.nan
+    rsi_val = float(latest['RSI']) if pd.notna(latest['RSI']) else np.nan
+    vol_val = float(latest['Vol_20d']) if pd.notna(latest['Vol_20d']) else np.nan
 
-    if pd.isna(latest['20MA']) or pd.isna(latest['50MA']):
+    # Trend
+    if np.isnan(ma20) or np.isnan(ma50):
         trend = 'Insufficient data'
-    elif latest['Close'] > latest['20MA'] > latest['50MA']:
+    elif close_val > ma20 > ma50:
         trend = 'Strong Uptrend'
-    elif latest['Close'] < latest['20MA'] < latest['50MA']:
+    elif close_val < ma20 < ma50:
         trend = 'Strong Downtrend'
     else:
         trend = 'Mixed Trend'
 
+    # Signal
     signal = 'Hold'
-    if not (pd.isna(latest['RSI']) or pd.isna(latest['Vol_20d'])):
-        if latest['RSI'] < 30:
+    if not np.isnan(rsi_val):
+        if rsi_val < 30:
             signal = 'Buy'
-        elif latest['RSI'] > 70:
+        elif rsi_val > 70:
             signal = 'Sell'
 
     latest_summary = {
-        'CurrentPrice': float(latest['Close']),
-        '20MA': float(latest['20MA']),
-        '50MA': float(latest['50MA']),
-        'RSI': float(latest['RSI']),
-        'Vol20d': float(latest['Vol_20d']),
+        'CurrentPrice': close_val,
+        '20MA': ma20,
+        '50MA': ma50,
+        'RSI': rsi_val,
+        'Vol20d': vol_val,
         'Trend': trend,
         'Signal': signal
     }
