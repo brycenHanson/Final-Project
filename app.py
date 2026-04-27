@@ -30,7 +30,13 @@ def compute_part1(data, window1=20, window2=50, rsi_window=14):
     data['50MA'] = data['Close'].rolling(window=window2).mean()
     data['Return'] = data['Close'].pct_change()
     data['Vol_20d'] = data['Return'].rolling(window=20).std() * np.sqrt(252)
-    rsi = RSIIndicator(close=data['Close'], window=rsi_window).rsi()
+ close_prices = data['Close']
+
+# Ensure it's a 1D Series (fixes yfinance multi-dim issue)
+if isinstance(close_prices, pd.DataFrame):
+    close_prices = close_prices.squeeze()
+
+rsi = RSIIndicator(close=close_prices, window=rsi_window).rsi()
     data['RSI'] = rsi
     # Trend label for the latest row
     latest = data.iloc[-1]
