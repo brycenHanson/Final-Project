@@ -32,7 +32,6 @@ def compute_part1(data, window1=20, window2=50, rsi_window=14):
     data['Return'] = data['Close'].pct_change()
     data['Vol_20d'] = data['Return'].rolling(window=20).std() * np.sqrt(252)
 
-    # RSI
     close_prices = data['Close']
     if isinstance(close_prices, pd.DataFrame):
         close_prices = close_prices.iloc[:, 0]
@@ -40,20 +39,19 @@ def compute_part1(data, window1=20, window2=50, rsi_window=14):
     close_prices = pd.Series(close_prices).dropna()
     data['RSI'] = RSIIndicator(close=close_prices, window=rsi_window).rsi()
 
-   latest = data.iloc[-1]
+    latest = data.iloc[-1]
 
-def safe_float(x):
-    if isinstance(x, pd.Series):
-        x = x.iloc[0]
-    return float(x) if pd.notna(x) else np.nan
+    def safe_float(x):
+        if isinstance(x, pd.Series):
+            x = x.iloc[0]
+        return float(x) if pd.notna(x) else np.nan
 
-close_val = safe_float(latest['Close'])
-ma20 = safe_float(latest['20MA'])
-ma50 = safe_float(latest['50MA'])
-rsi_val = safe_float(latest['RSI'])
-vol_val = safe_float(latest['Vol_20d'])
+    close_val = safe_float(latest['Close'])
+    ma20 = safe_float(latest['20MA'])
+    ma50 = safe_float(latest['50MA'])
+    rsi_val = safe_float(latest['RSI'])
+    vol_val = safe_float(latest['Vol_20d'])
 
-    # Trend
     if np.isnan(ma20) or np.isnan(ma50):
         trend = 'Insufficient data'
     elif close_val > ma20 > ma50:
@@ -63,7 +61,6 @@ vol_val = safe_float(latest['Vol_20d'])
     else:
         trend = 'Mixed Trend'
 
-    # Signal
     signal = 'Hold'
     if not np.isnan(rsi_val):
         if rsi_val < 30:
@@ -71,7 +68,7 @@ vol_val = safe_float(latest['Vol_20d'])
         elif rsi_val > 70:
             signal = 'Sell'
 
-    latest_summary = {
+    return data, {
         'CurrentPrice': close_val,
         '20MA': ma20,
         '50MA': ma50,
