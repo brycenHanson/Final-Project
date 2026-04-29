@@ -120,7 +120,7 @@ mode = st.sidebar.radio("Choose part to view", ["Part 1 - Individual Stock", "Pa
 
 if mode == "Part 1 - Individual Stock":
     st.header("Part 1: Individual Stock Analysis")
-    ticker = st.text_input("Ticker", value="AAPL")
+    ticker = st.text_input("Ticker", value="GOOGL")
     days = st.number_input("Data lookback (days, up to ~180)", min_value=60, max_value=365, value=180, step=1)
     end_date = pd.Timestamp.today()
     start_date = end_date - pd.Timedelta(days=int(days))
